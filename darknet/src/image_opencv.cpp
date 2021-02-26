@@ -1109,8 +1109,7 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         strcat(labelstr, num_char);
         cv::Size const text_size = cv::getTextSize(labelstr, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, 1, 0);
         cv::putText(*show_img, labelstr, pt1, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
-        cv::putText(*show_img, labelstr, pt1, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
-
+        printf("Total de caras detectadas %d\n", sizeof(rectangles));
 
         if (ext_output) {
             fflush(stdout);
