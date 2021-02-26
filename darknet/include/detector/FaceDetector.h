@@ -6,7 +6,7 @@
 #define VISUALS_FACEDETECTOR_H
 
 
-#include <opencv2/opencv2/dnn.hpp>
+#include <content/darknet_PersonAndFaceDetection/darknet/opencv/modules/dnn/include/opencv2/dnn.hpp>
 
 
 class FaceDetector {
