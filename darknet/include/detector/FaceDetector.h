@@ -6,7 +6,7 @@
 #define VISUALS_FACEDETECTOR_H
 
 
-#include <opencv/opencv2/dnn.hpp>
+#include <opencv4/opencv2/dnn.hpp>
 
 
 class FaceDetector {
