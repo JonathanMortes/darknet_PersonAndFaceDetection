@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.5)
 include(CMakeDependentOption)
 
 set(Darknet_MAJOR_VERSION 0)
@@ -63,8 +63,10 @@ endif()
 enable_language(C)
 enable_language(CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules/" ${CMAKE_MODULE_PATH})
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(default_build_type "Release")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -136,6 +138,9 @@ endif()
 if(ENABLE_OPENCV)
   find_package(OpenCV)
   if(OpenCV_FOUND)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_DIRS})
+    target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Werror -Wpedantic -Wshadow -Wdouble-promotion -Wconversion -fvisibility=hidden)
     if(SELECT_OPENCV_MODULES)
       if(TARGET opencv_world)
         list(APPEND OpenCV_LINKED_COMPONENTS "opencv_world")
@@ -219,6 +224,22 @@ if(OpenCV_FOUND)
     endif()
   endif()
 endif()
+
+
+set(SOURCES
+        src/NVidiaComputeParticlesApp.cpp
+        src/CameraHandler.cpp
+        src/ParticleSystem.cpp
+        src/detector/Detector.cpp
+        src/detector/FaceDetector.cpp
+        src/detector/FaceKeypoints.cpp
+        src/detector/KeypointDetector.cpp
+
+        include/detector/PairOfEyes.h
+        include/ScopedBufferBase.h
+        include/Ssbo.h
+       # src/main.cpp
+        )
 
 if(ENABLE_CUDA AND ENABLE_CUDNN)
   find_package(CUDNN)
@@ -514,3 +535,26 @@ install(FILES
   "${PROJECT_BINARY_DIR}/DarknetConfigVersion.cmake"
   DESTINATION "${INSTALL_CMAKE_DIR}"
 )
+
+
+# TODO Make cinder installable via cmake
+# Cinder setup
+add_subdirectory(Cinder)
+get_filename_component(CINDER_PATH "${PROJECT_SOURCE_DIR}/Cinder" ABSOLUTE)
+
+include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
+ci_make_app(
+        APP_NAME "${PROJECT_NAME}"
+        CINDER_PATH ${CINDER_PATH}
+        SOURCES ${SOURCES}
+        INCLUDES include/
+)
+
+# Introduce preprocessor variables to keep paths of asset files
+set(FACE_DETECTION_CONFIGURATION "${PROJECT_SOURCE_DIR}/assets/deploy.prototxt")
+set(FACE_DETECTION_WEIGHTS "${PROJECT_SOURCE_DIR}/assets/res10_300x300_ssd_iter_140000_fp16.caffemodel")
+set(KEYPOINT_DETECTION_MODEL "${PROJECT_SOURCE_DIR}/assets/lbfmodel.yaml")
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE FACE_DETECTION_CONFIGURATION="${FACE_DETECTION_CONFIGURATION}")
+target_compile_definitions(${PROJECT_NAME} PRIVATE FACE_DETECTION_WEIGHTS="${FACE_DETECTION_WEIGHTS}")
+target_compile_definitions(${PROJECT_NAME} PRIVATE KEYPOINT_DETECTION_MODEL="${KEYPOINT_DETECTION_MODEL}")
