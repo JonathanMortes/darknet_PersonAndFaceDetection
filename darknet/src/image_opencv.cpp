@@ -871,7 +871,6 @@ extern "C" void save_cv_jpg(mat_cv *img_src, const char *name)
 }
 // ----------------------------------------
 
-
 // ====================================================================
 // Draw Detection
 // ====================================================================
@@ -883,6 +882,7 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         if (!show_img) return;
         static int frame_id = 0;
         frame_id++;
+        int contador = 0;
 
         for (i = 0; i < num; ++i) {
             char labelstr[4096] = { 0 };
@@ -901,6 +901,9 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
                         sprintf(buff, " (%2.0f%%)", dets[i].prob[j] * 100);
                         strcat(labelstr, buff);
                         printf("%s: %.0f%% ", names[j], dets[i].prob[j] * 100);
+                        if (class_id == 0){
+                          contador++;
+                        };
                         if (dets[i].track_id) printf("(track = %d, sim = %f) ", dets[i].track_id, dets[i].sim);
                     }
                     else {
@@ -1006,10 +1009,28 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
                 cv::putText(*show_img, labelstr, pt_text, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
                 // cv::FONT_HERSHEY_COMPLEX_SMALL, cv::FONT_HERSHEY_SIMPLEX
             }
+        /
+
         }
+        printf("Tolal detecciones: %d \n",contador);
+        cv::Point text_position;
+        float const font_size = show_img->rows / 1000.F;
+        text_position.x = 40;
+        text_position.y = 40;
+        cv::Scalar text_color = CV_RGB(250, 50, 50);
+        char labelstr[4096] = { 0 };
+        std::stringstream tmp;
+        tmp << contador;
+        char const *num_char = tmp.str().c_str();
+
+        strcat(labelstr, "Tolal de personas detectadas: ");
+        strcat(labelstr, num_char);
+        cv::Size const text_size = cv::getTextSize(labelstr, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, 1, 0);
+        cv::putText(*show_img, labelstr, text_position, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, text_color, 2 * font_size, CV_AA);
+
         if (ext_output) {
             fflush(stdout);
-        }
+        };
     }
     catch (...) {
         cerr << "OpenCV exception: draw_detections_cv_v3() \n";
