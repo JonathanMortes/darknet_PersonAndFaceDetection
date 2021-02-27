@@ -21,7 +21,7 @@
 #include <opencv2/video/video.hpp>
 
 //  includes for pyntegration
-#include  <Python.h>
+#include  <python.h>
 
 // includes for OpenCV >= 3.x
 #ifndef CV_VERSION_EPOCH
@@ -886,11 +886,6 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         static int frame_id = 0;
         frame_id++;
         int contador = 0;
-        // Código py
-        CPyInstance hInstance;
-	      CPyObject pName = PyUnicode_FromString("pyemb3");
-	      CPyObject pModule = PyImport_Import(pName);
-        CPyObject pFunc = PyObject_GetAttrString(pModule, "detectFaces");
 
         for (i = 0; i < num; ++i) {
             char labelstr[4096] = { 0 };
@@ -1016,12 +1011,10 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
                 cv::Scalar black_color = CV_RGB(0, 0, 0);
                 cv::putText(*show_img, labelstr, pt_text, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
                 // cv::FONT_HERSHEY_COMPLEX_SMALL, cv::FONT_HERSHEY_SIMPLEX
-
-
             }
 
         }
-        printf("Tolal de personas detectadas: %d \n",contador);
+        printf("Tolal personas detectadas: %d \n",contador);
         cv::Point pt1;
         float const font_size = show_img->rows / 1000.F;
         pt1.x = 40;
@@ -1036,12 +1029,6 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         strcat(labelstr, num_char);
         cv::Size const text_size = cv::getTextSize(labelstr, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, 1, 0);
         cv::putText(*show_img, labelstr, pt1, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
-
-        //Pycoding
-
-        CPyObject pValue = PyObject_CallObject(pFunc, *show_img);
-        *show_img = pValue;
-
 
         if (ext_output) {
             fflush(stdout);
