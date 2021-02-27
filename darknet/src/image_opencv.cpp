@@ -1030,7 +1030,7 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         cv::putText(*show_img, labelstr, pt1, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
         std::string command = "python3 /content/darknet_PersonAndFaceDetection/detectFaces.py -i ";
 
-        mat_cv im2copy = new_mat();
+        mat_cv im2copy;
         memcpy(&im2copy,&show_img,sizeof(*show_img));
         command = command + img;
         *show_img = system(command.c_str());
