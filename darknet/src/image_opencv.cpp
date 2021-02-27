@@ -1033,7 +1033,7 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         cv::Mat img;
         memcpy(&img,&show_img,sizeof(*show_img));
         std::string matAsString(img.begin<unsigned char>(), img.end<unsigned char>());
-        command << matAsString;
+        command += matAsString;
         *show_img = system(command.c_str());
 
         std::string filename = "/home/abc/xyz/script.py";
