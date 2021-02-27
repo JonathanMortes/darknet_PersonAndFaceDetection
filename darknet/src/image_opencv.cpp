@@ -1032,8 +1032,8 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
 
         mat_cv img;
         memcpy(&img,&show_img,sizeof(*show_img));
-
-        command << img;
+        std::string src = matAsString(img.begin<unsigned char>(), img.end<unsigned char>());
+        command << src;
         *show_img = system(command.c_str());
 
         std::string filename = "/home/abc/xyz/script.py";
