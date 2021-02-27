@@ -1028,9 +1028,8 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         strcat(labelstr, num_char);
         cv::Size const text_size = cv::getTextSize(labelstr, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, 1, 0);
         cv::putText(*show_img, labelstr, pt1, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
-        std::string filename = "/content/darknet_PersonAndFaceDetection/detectFaces.py -i ";
-        filename << *show_img;
-        std::string command = "python3 ";
+        std::string command = "python3 /content/darknet_PersonAndFaceDetection/detectFaces.py -i ";
+        command += *show_img;
         *show_img = system(command.c_str());
 
         std::string filename = "/home/abc/xyz/script.py";
