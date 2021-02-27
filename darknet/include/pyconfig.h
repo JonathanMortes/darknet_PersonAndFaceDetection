@@ -64,9 +64,7 @@ WIN32 is still required for the locale module.
 #define HAVE_STRERROR
 #endif
 
-#ifdef HAVE_IO_H
-#include <io.h>
-#endif
+
 
 #define HAVE_HYPOT
 #define HAVE_STRFTIME

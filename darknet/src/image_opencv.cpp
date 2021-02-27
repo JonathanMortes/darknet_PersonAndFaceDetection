@@ -21,7 +21,7 @@
 #include <opencv2/video/video.hpp>
 
 //  includes for pyntegration
-#include  <python.h>
+#include  <Python.h>
 
 // includes for OpenCV >= 3.x
 #ifndef CV_VERSION_EPOCH
