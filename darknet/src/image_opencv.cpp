@@ -20,8 +20,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/video/video.hpp>
 
-//  includes for pyntegration
-#include  <python.h>
+
 
 // includes for OpenCV >= 3.x
 #ifndef CV_VERSION_EPOCH
