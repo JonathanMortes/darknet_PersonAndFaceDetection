@@ -290,6 +290,7 @@ file(GLOB headers "${CMAKE_CURRENT_LIST_DIR}/src/*.h")
 #add also files in the include folder
 list(APPEND headers
   ${CMAKE_CURRENT_LIST_DIR}/include/darknet.h
+  ${CMAKE_CURRENT_LIST_DIR}-I/usr/include/python3.6m
 )
 #remove windows only files
 if(NOT MSVC)
