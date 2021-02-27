@@ -6,14 +6,12 @@ import argparse
 ap = argparse.ArgumentParser()
 ap.add_argument('-i', '--image', required=True, help='image file')
 args = ap.parse_args()
-view raw
 # load input image
 image = (args.image)
 
 
 # initialize cnn based face detector with the weights
 cnn_face_detector = dlib.cnn_face_detection_model_v1('/content/darknet_PersonAndFaceDetection/mmod_human_face_detector.dat')
-start = time.time()
 # apply face detection (cnn)
 faces_cnn = cnn_face_detector(image, 1)
 counter = 0
@@ -28,3 +26,5 @@ for face in faces_cnn:
     counter = counter + 1
 print('total faces detected')
 print(counter)
+
+print(image)
