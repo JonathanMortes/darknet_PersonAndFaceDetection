@@ -26,6 +26,5 @@ for face in faces_cnn:
     counting_people = counting_people + 1
 
 caption = "{} {}".format("Total people in frame: ", str(counting_people))
-print(caption)
 cv2.putText(image, caption, (40,60), cv2.FONT_HERSHEY_PLAIN, 2, (255, 100, 0), 2)
 print(image)
