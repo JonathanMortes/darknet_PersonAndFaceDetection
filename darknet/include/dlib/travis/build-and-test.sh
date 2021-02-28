@@ -3,7 +3,7 @@
 set -eux
 
 # execute the contents of MATRIX_EVAL if it's set
-if [ -n "${MATRIX_EVAL+set}" ]; then
+if [[ -v MATRIX_EVAL ]]; then
     eval "${MATRIX_EVAL}"
 fi
 
@@ -13,16 +13,7 @@ if [ "$VARIANT" = "test" ]; then
   cd build
   cmake ../dlib/test 
   cmake --build . --target dtest -- -j 2
-  ./dtest --runall $DISABLED_TESTS
-fi
-
-# build dlib and tests
-if [ "$VARIANT" = "test-debug" ]; then
-  mkdir build
-  cd build
-  cmake ../dlib/test -DDLIB_ENABLE_ASSERTS=1
-  cmake --build . --target dtest -- -j 2
-  ./dtest --runall $DISABLED_TESTS
+  ./dtest --runall
 fi
 
 if [ "$VARIANT" = "dlib_all_source_cpp" ]; then
@@ -68,13 +59,6 @@ if [ "$VARIANT" = "examples" ]; then
   mkdir build
   cd build
   cmake ../examples 
-  cmake --build . -- -j 1
-fi
-
-if [ "$VARIANT" = "examples-debug" ]; then
-  mkdir build
-  cd build
-  cmake ../examples -DDLIB_ENABLE_ASSERTS=1
   cmake --build . -- -j 1
 fi
 

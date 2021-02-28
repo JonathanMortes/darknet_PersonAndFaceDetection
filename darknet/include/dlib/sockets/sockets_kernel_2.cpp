@@ -5,14 +5,13 @@
 
 #include "../platform.h"
 
-#ifdef DLIB_POSIX
+#ifdef POSIX
 
 
 #include "sockets_kernel_2.h"
 #include <fcntl.h>
 #include "../set.h"
 #include <netinet/tcp.h>
-#include <string.h>
 
 
 
@@ -1104,7 +1103,7 @@ namespace dlib
 
 }
 
-#endif // DLIB_POSIX
+#endif // POSIX
 
 #endif // DLIB_SOCKETS_KERNEL_2_CPp_
 

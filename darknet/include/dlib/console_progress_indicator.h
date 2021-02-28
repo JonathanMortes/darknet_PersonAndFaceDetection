@@ -66,16 +66,15 @@ namespace dlib
 
         inline bool print_status (
             double cur,
-            bool always_print = false,
-            std::ostream& out = std::cout
+            bool always_print = false
         );
         /*!
             ensures
-                - print_status() assumes it is called with values which are linearly
-                  approaching target().  It will attempt to predict how much time is
+                - print_status() assumes it is called with values which are linearly 
+                  approaching target().  It will attempt to predict how much time is 
                   remaining until cur becomes equal to target().
-                - prints a status message to out which indicates how much more time is
-                  left until cur is equal to target()
+                - prints a status message to the screen which indicates how much
+                  more time is left until cur is equal to target()
                 - if (always_print) then
                     - This function prints to the screen each time it is called.
                 - else
@@ -84,7 +83,7 @@ namespace dlib
                       until about one second has elapsed.  This means that the first call
                       to print_status() never prints to the screen.
                 - This function returns true if it prints to the screen and false
-                  otherwise.
+                  otherwise. 
         !*/
 
     private:
@@ -121,8 +120,7 @@ namespace dlib
     bool console_progress_indicator::
     print_status (
         double cur,
-        bool always_print,
-        std::ostream& out
+        bool always_print
     )
     {
         const time_t cur_time = std::time(0);
@@ -151,30 +149,30 @@ namespace dlib
 
             double seconds = delta_t/delta_val * std::abs(target_val - cur);
 
-            std::ios::fmtflags oldflags = out.flags();
+            std::ios::fmtflags oldflags = std::cout.flags();  
 
-            out.setf(std::ios::fixed,std::ios::floatfield);
+            std::cout.setf(std::ios::fixed,std::ios::floatfield);
             std::streamsize ss;
 
             if (seconds < 60)
             {
-                ss = out.precision(0);
-                out << "Time remaining: " << seconds << " seconds.                 \r" << std::flush;
+                ss = std::cout.precision(0); 
+                std::cout << "Time remaining: " << seconds << " seconds.                 \r" << std::flush;
             }
             else if (seconds < 60*60)
             {
-                ss = out.precision(2);
-                out << "Time remaining: " << seconds/60 << " minutes.                 \r" << std::flush;
+                ss = std::cout.precision(2); 
+                std::cout << "Time remaining: " << seconds/60 << " minutes.                 \r" << std::flush;
             }
             else 
             {
-                ss = out.precision(2);
-                out << "Time remaining: " << seconds/60/60 << " hours.                 \r" << std::flush;
+                ss = std::cout.precision(2); 
+                std::cout << "Time remaining: " << seconds/60/60 << " hours.                 \r" << std::flush;
             }
 
             // restore previous output flags and precision settings
-            out.flags(oldflags);
-            out.precision(ss);
+            std::cout.flags(oldflags); 
+            std::cout.precision(ss); 
 
             return true;
         }

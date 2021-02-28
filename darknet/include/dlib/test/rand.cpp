@@ -10,7 +10,6 @@
 #include <dlib/rand.h>
 #include <dlib/compress_stream.h>
 #include <dlib/hash.h>
-#include <dlib/statistics.h>
 
 #include "tester.h"
 
@@ -408,44 +407,6 @@ namespace
 
     }
 
-    void test_weibull_distribution()
-    {
-        print_spinner();
-        dlib::rand rnd(0);
-        
-        const size_t N = 1024*1024*4;
-        const double tol = 0.01;
-        double k=1.0, lambda=2.0, g=6.0;
-
-        dlib::running_stats<double> stats;
-        for (size_t i = 0; i < N; i++) 
-            stats.add(rnd.get_random_weibull(lambda, k, g));
-
-        double expected_mean = g + lambda*std::tgamma(1 + 1.0 / k);
-        double expected_var  = lambda*lambda*(std::tgamma(1 + 2.0 / k) - std::pow(std::tgamma(1 + 1.0 / k),2));
-        DLIB_TEST(std::abs(stats.mean() - expected_mean) < tol);
-        DLIB_TEST(std::abs(stats.variance() - expected_var) < tol);
-    }
-    
-    void test_exponential_distribution()
-    {
-        print_spinner();
-        dlib::rand rnd(0);
-        
-        const size_t N = 1024*1024*5;
-        
-        const double lambda = 1.5;
-        print_spinner();
-        dlib::running_stats<double> stats;
-        for (size_t i = 0; i < N; i++) 
-            stats.add(rnd.get_random_exponential(lambda));
-        
-        DLIB_TEST(std::abs(stats.mean() - 1.0 / lambda) < 0.001);
-        DLIB_TEST(std::abs(stats.variance() - 1.0 / (lambda*lambda)) < 0.001);
-        DLIB_TEST(std::abs(stats.skewness() - 2.0) < 0.01);
-        DLIB_TEST(std::abs(stats.ex_kurtosis() - 6.0) < 0.1);
-    }
-    
     class rand_tester : public tester
     {
     public:
@@ -467,8 +428,6 @@ namespace
             test_gaussian_random_hash();
             test_uniform_random_hash();
             test_get_integer();
-            test_weibull_distribution();
-            test_exponential_distribution();
         }
     } a;
 

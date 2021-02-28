@@ -9,7 +9,6 @@
 #include "../serialize.h"
 #include <new>
 #include <iostream>
-#include <type_traits>
 
 namespace dlib
 {
@@ -186,15 +185,14 @@ namespace dlib
 
         template <typename T>
         void construct (
-            T&& item
+            const T& item
         )  
         { 
-            using U = typename std::decay<T>::type;
-            if (type_identity != get_type_id<U>())
+            if (type_identity != get_type_id<T>())
             {
                 destruct(); 
-                new(mem.get()) U(std::forward<T>(item)); 
-                type_identity = get_type_id<U>();
+                new(mem.get()) T(item); 
+                type_identity = get_type_id<T>();
             }
         }
 
@@ -264,18 +262,11 @@ namespace dlib
 
         template <typename T>
         type_safe_union (
-            T&& item
+            const T& item
         ) : type_identity(0)
         {
-            validate_type<typename std::decay<T>::type>();
-            construct(std::forward<T>(item));
-        }
-
-        type_safe_union (
-            type_safe_union&& item
-        ) : type_safe_union() 
-        {
-            swap(item);
+            validate_type<T>();
+            construct(item);
         }
 
         ~type_safe_union()
@@ -564,9 +555,7 @@ namespace dlib
         }
 
         template <typename T>
-        type_safe_union& operator= (T&& item) { get<typename std::decay<T>::type>() = std::forward<T>(item); return *this; }
-
-        type_safe_union& operator= (type_safe_union&& item) { swap(item); return *this; }
+        type_safe_union& operator= ( const T& item) { get<T>() = item; return *this; }
 
     };
 

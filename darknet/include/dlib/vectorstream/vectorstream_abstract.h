@@ -42,24 +42,18 @@ namespace dlib
                   be used.  Therefore, any time data is written to this stream it will
                   immediately show up in the buffer.
         !*/
-        
-        vectorstream (
-            std::vector<int8_t>& buffer
+
+        std::istream& seekg (
+            std::streampos pos
         );
         /*!
             ensures
-                - This constructor has the same contract as the previous constructor
-                  except the buffer is now std::vector<int8_t>
+                - The next read from this object will read from the position buffer[pos],
+                  where buffer is the std::vector given to this object's constructor.  Note
+                  that if pos >= buffer.size() then the next read will simply return EOF.
+                - returns *this
         !*/
-        
-        vectorstream (
-            std::vector<uint8_t>& buffer
-        );
-        /*!
-            ensures
-                - This constructor has the same contract as the previous constructor
-                  except the buffer is now std::vector<uint8_t>
-        !*/
+
     };
 }
 

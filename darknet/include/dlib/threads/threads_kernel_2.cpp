@@ -5,7 +5,7 @@
 
 #include "../platform.h"
 
-#ifdef DLIB_POSIX
+#ifdef POSIX
 
 #include "threads_kernel_2.h"
 
@@ -69,7 +69,7 @@ namespace dlib
 
 }
 
-#endif // DLIB_POSIX
+#endif // POSIX
 
 #endif // DLIB_THREADS_KERNEL_2_CPp_
 

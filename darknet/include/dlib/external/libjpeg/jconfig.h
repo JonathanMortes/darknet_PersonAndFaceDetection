@@ -1,4 +1,5 @@
 /* jconfig.h.  Generated automatically by configure.  */
+/* jconfig.cfg --- source file edited by configure script */
 /* see jconfig.doc for explanations */
 
 #define HAVE_PROTOTYPES 
@@ -19,6 +20,7 @@
 #ifdef JPEG_INTERNALS
 
 #undef RIGHT_SHIFT_IS_UNSIGNED
+#define INLINE __inline__
 /* These are for configuring the JPEG memory manager. */
 #undef DEFAULT_MAX_MEM
 #undef NO_MKTEMP

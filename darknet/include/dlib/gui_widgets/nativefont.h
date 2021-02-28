@@ -2,12 +2,10 @@
 // License: Boost Software License   See LICENSE.txt for the full license.
 #ifndef DLIB_IGG_FONT_RENDERER_H_
 #define DLIB_IGG_FONT_RENDERER_H_
-#ifndef DLIB_NO_GUI_SUPPORT
-
 #include "../platform.h"
 
 
-#include "../gui_widgets/fonts.h"
+#include "../gui_widgets.h"
 #include "../unicode.h"
 #include "../uintn.h"
 
@@ -22,7 +20,7 @@
 #if defined(WIN32)
 #include <windows.h>
 #include <mbstring.h>
-#elif defined(DLIB_POSIX)
+#elif defined(POSIX)
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -297,7 +295,7 @@ namespace nativefont
                 ~vals_internal(){
                     destroy();
                 }
-#elif defined(DLIB_POSIX)
+#elif defined(POSIX)
                 XImage *ximg;
                 Display *d;
                 GC gc;
@@ -610,6 +608,5 @@ namespace nativefont
 
 }
 
-#endif // DLIB_NO_GUI_SUPPORT
 #endif // DLIB_IGG_FONT_RENDERER_H_
 

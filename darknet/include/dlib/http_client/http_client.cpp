@@ -67,7 +67,7 @@ namespace dlib
 //! \return modified string ``s'' with spaces trimmed from left
     inline std::string& triml(std::string& s)
     {
-        std::string::size_type pos(0);
+        int pos(0);
         for ( ; s[pos] == ' ' || s[pos] == '\t' || s[pos] == '\r' || s[pos] == '\n' ; ++pos );
         s.erase(0, pos);
         return s;
@@ -78,7 +78,7 @@ namespace dlib
 //! \return modified string ``s'' with spaces trimmed from right
     inline std::string& trimr(std::string& s)
     {
-        std::string::size_type pos(s.size());
+        int pos(s.size());
         for ( ; pos && (s[pos-1] == ' ' || s[pos-1] == '\t' || s[pos-1] == '\r' || s[pos-1] == '\n') ; --pos );
         s.erase(pos, s.size()-pos);
         return s;

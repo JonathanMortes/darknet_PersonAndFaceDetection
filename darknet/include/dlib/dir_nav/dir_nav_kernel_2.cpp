@@ -5,7 +5,7 @@
 
 #include "../platform.h"
 
-#ifdef DLIB_POSIX
+#ifdef POSIX
 
 
 #include "dir_nav_kernel_2.h"
@@ -248,7 +248,7 @@ namespace dlib
 
 }
 
-#endif // DLIB_POSIX
+#endif // POSIX
 
 #endif // DLIB_DIR_NAV_KERNEL_2_CPp_
 

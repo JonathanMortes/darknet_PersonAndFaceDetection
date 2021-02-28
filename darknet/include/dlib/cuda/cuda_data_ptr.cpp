@@ -13,36 +13,6 @@ namespace dlib
     namespace cuda 
     {
 
-    // ----------------------------------------------------------------------------------------
-
-        weak_cuda_data_void_ptr::
-        weak_cuda_data_void_ptr(
-            const cuda_data_void_ptr& ptr
-        ) : num(ptr.num), pdata(ptr.pdata)
-        {
-
-        }
-
-    // ----------------------------------------------------------------------------------------
-
-        cuda_data_void_ptr weak_cuda_data_void_ptr::
-        lock() const 
-        {
-            auto ptr = pdata.lock();
-            if (ptr)
-            {
-                cuda_data_void_ptr temp;
-                temp.pdata = ptr;
-                temp.num = num;
-                return temp;
-            }
-            else
-            {
-                return cuda_data_void_ptr();
-            }
-        }
-
-    // -----------------------------------------------------------------------------------
     // -----------------------------------------------------------------------------------
 
         cuda_data_void_ptr::
@@ -130,8 +100,7 @@ namespace dlib
             {
             }
 
-            cuda_data_void_ptr get (
-                size_t size
+            std::shared_ptr<resizable_cuda_buffer> get_buffer (
             )
             {
                 int new_device_id;
@@ -140,12 +109,11 @@ namespace dlib
                 if (new_device_id >= (long)buffers.size())
                     buffers.resize(new_device_id+16);
 
-                // If we don't have a buffer already for this device then make one, or if it's too
-                // small, make a bigger one.
-                cuda_data_void_ptr buff = buffers[new_device_id].lock();
-                if (!buff || buff.size() < size)
+                // If we don't have a buffer already for this device then make one
+                std::shared_ptr<resizable_cuda_buffer> buff = buffers[new_device_id].lock();
+                if (!buff)
                 {
-                    buff = cuda_data_void_ptr(size);
+                    buff = std::make_shared<resizable_cuda_buffer>();
                     buffers[new_device_id] = buff;
                 }
 
@@ -155,15 +123,13 @@ namespace dlib
 
         private:
 
-            std::vector<weak_cuda_data_void_ptr> buffers;
+            std::vector<std::weak_ptr<resizable_cuda_buffer>> buffers;
         };
 
-    // ----------------------------------------------------------------------------------------
-
-        cuda_data_void_ptr device_global_buffer(size_t size) 
+        std::shared_ptr<resizable_cuda_buffer> device_global_buffer()
         {
             thread_local cudnn_device_buffer buffer;
-            return buffer.get(size);
+            return buffer.get_buffer();
         }
 
     // ------------------------------------------------------------------------------------

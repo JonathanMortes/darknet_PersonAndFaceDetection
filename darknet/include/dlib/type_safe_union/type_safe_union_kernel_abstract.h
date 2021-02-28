@@ -101,7 +101,7 @@ namespace dlib
 
         template <typename T>
         type_safe_union (
-            T&& item
+            const T& item
         );
         /*!
             requires
@@ -109,15 +109,7 @@ namespace dlib
             ensures
                 - this object is properly initialized
                 - #get<T>() == item
-                  (i.e. this object will contain a copy of item, or we move item if it's an rvalue)
-        !*/
-
-        type_safe_union (
-            type_safe_union&& item
-        ); 
-        /*!
-            ensures
-                - move constructs *this from item.
+                  (i.e. this object will contain a copy of item)
         !*/
 
         ~type_safe_union(
@@ -270,23 +262,14 @@ namespace dlib
 
         template <typename T>
         type_safe_union& operator= (
-            T&& item
+            const T& item
         );
         /*!
             requires
                 - T must be one of the types given to this object's template arguments
             ensures
                 - #get<T>() == item
-                  (i.e. this object will contain a copy of item, or we move item if it's an rvalue)
-                - returns *this
-        !*/
-
-        type_safe_union& operator= (
-            type_safe_union&& item
-        ); 
-        /*!
-            ensures
-                - Allows moving item into *this.  In fact, this is done by this->swap(item).
+                  (i.e. this object will contain a copy of item)
                 - returns *this
         !*/
 

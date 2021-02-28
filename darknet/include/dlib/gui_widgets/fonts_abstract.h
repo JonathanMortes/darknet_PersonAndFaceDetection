@@ -3,6 +3,7 @@
 #undef DLIB_FONTs_ABSTRACT_
 #ifdef DLIB_FONTs_ABSTRACT_
 
+#include "../gui_core.h"
 #include <string>
 #include "../serialize.h"
 #include "../unicode.h"
@@ -274,9 +275,9 @@ namespace dlib
                     - #height == (count(str.begin(),str.end(),'\n')+1)*height()
         !*/
 
-        template <typename C, typename T, typename traits, typename alloc, typename pixel_type>
+        template <typename T, typename traits, typename alloc, typename pixel_type>
         void draw_string (
-            const C& c,
+            const canvas& c,
             const rectangle& rect,
             const std::basic_string<T,traits,alloc>& str,
             const pixel_type& color = rgb_pixel(0,0,0),
@@ -286,7 +287,6 @@ namespace dlib
         ) const;
         /*!
             requires
-                - C is a dlib::canvas or an object with a compatible interface.
                 - if (last != std::basic_string<T,traits,alloc>::npos) then
                     - first <= last
                     - last < str.size()
@@ -480,8 +480,6 @@ namespace dlib
     const shared_ptr_thread_safe<font> get_native_font(
     );
     /*!
-        requires
-            - DLIB_NO_GUI_SUPPORT is not defined
         ensures
             - returns a font object that uses the local font
     !*/
