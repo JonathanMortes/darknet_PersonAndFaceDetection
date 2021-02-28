@@ -29,33 +29,6 @@
 #include <dlib/image_processing/frontal_face_detector.h>
 
 
-struct mmod_rect
-{
-    mmod_rect() = default;
-    mmod_rect(const rectangle& r) : rect(r) {}
-    mmod_rect(const rectangle& r, double score) : rect(r),detection_confidence(score) {}
-    mmod_rect(const rectangle& r, double score, const std::string& label) : rect(r),detection_confidence(score), label(label) {}
-
-    rectangle rect;
-    double detection_confidence = 0;
-    bool ignore = false;
-    std::string label;
-
-    operator rectangle() const { return rect; }
-    bool operator == (const mmod_rect& rhs) const
-    {
-        return rect == rhs.rect
-               && detection_confidence == rhs.detection_confidence
-               && ignore == rhs.ignore
-               && label == rhs.label;
-    }
-};
-
-
-
-
-
-
 using namespace std;
 
 // ----------------------------------------------------------------------------------------
