@@ -26,6 +26,7 @@
 #include <dlib/image_processing.h>
 #include <dlib/gui_widgets.h>
 
+#include <dlib/image_processing/frontal_face_detector.h>
 
 using namespace std;
 
@@ -1049,14 +1050,38 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         cv::putText(*show_img, labelstr, pt1, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
 
         // CÓDIGO DE FACE Detection
-        std::string mmodModelPath = "./content/mmod_human_face_detector.dat";
+        std::string mmodModelPath = "/content/darknet_PersonAndFaceDetection/mmod_human_face_detector.dat";
         net_type mmodFaceDetector;
         dlib::deserialize(mmodModelPath) >> mmodFaceDetector;
 
         cv::Mat cv_image;
         cv::cvtColor(*show_img, cv_image, cv::COLOR_BGR2RGB);
-        //auto facial = mmodFaceDetector(cv_image);
+        /*
+        //https://learnopencv.com/face-detection-opencv-dlib-and-deep-learning-c-python/
+                // Convert OpenCV image format to Dlib's image format
 
+        cv_image<bgr_pixel> dlibIm(frameDlibMmodSmall);
+
+        matrix<rgb_pixel> dlibMatrix;
+
+        assign_image(dlibMatrix, dlibIm);
+        // Detect faces in the image
+
+        std::vector<dlib::mmod_rect> faceRects = mmodFaceDetector(dlibMatrix);
+        for ( size_t i = 0; i < faceRects.size(); i++ )
+        {
+          int x1 = faceRects[i].rect.left();
+          int y1 = faceRects[i].rect.top();
+          int x2 = faceRects[i].rect.right();
+          int y2 = faceRects[i].rect.bottom();
+
+        cv::rectangle(frameDlibMmod, Point(x1, y1), Point(x2, y2), Scalar(0,255,0), (int)(frameHeight/150.0), 4);
+        */
+        // IT FAILS HERE
+        //std::vector<dlib::mmod_rect> faceRects = mmodFaceDetector(cv_image);
+        // ------
+        dlib::frontal_face_detector detector = dlib::get_frontal_face_detector();
+        std::vector<rectangle> dets = detector(cv_image);
 
 
 
