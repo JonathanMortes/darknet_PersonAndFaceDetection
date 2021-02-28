@@ -1017,7 +1017,7 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
             }
 
         }
-        printf("Tolal personas detectadas: %d \n",contador);
+        printf("Tolal de personas detectadas: %d \n",contador);
         cv::Point pt1;
         float const font_size = show_img->rows / 1000.F;
         pt1.x = 40;
@@ -1032,6 +1032,50 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         strcat(labelstr, num_char);
         cv::Size const text_size = cv::getTextSize(labelstr, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, 1, 0);
         cv::putText(*show_img, labelstr, pt1, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
+
+
+        // CÓDIGO DE FACE Detection
+        String mmodModelPath = "./content/mmod_human_face_detector.dat";
+        net_type mmodFaceDetector;
+        deserialize(mmodModelPath) >> mmodFaceDetector;
+        cv::Mat cv_image;
+        cv_image = (cv::Mat*)mat;
+        // Convert OpenCV image format to Dlib's image format
+        cv_image<bgr_pixel> dlibIm(frameDlibMmodSmall);
+        matrix<rgb_pixel> dlibMatrix;
+        assign_image(dlibMatrix, dlibIm);
+
+        // Detect faces in the image
+        std::vector<dlib::mmod_rect> faceRects = mmodFaceDetector(dlibMatrix);
+        contador = 0;
+        for ( size_t i = 0; i < faceRects.size(); i++ ){
+          int x1 = faceRects[i].rect.left();
+          int y1 = faceRects[i].rect.top();
+          int x2 = faceRects[i].rect.right();
+          int y2 = faceRects[i].rect.bottom();
+          cv::rectangle(*show_img, Point(x1, y1), Point(x2, y2), Scalar(0,255,0), (int)(frameHeight/150.0), 4);
+          contador++;
+        }
+        // Imprimimos Face detection
+        printf("Tolal de caras  detectadas: %d \n",contador);
+        pt1.x = 40;
+        pt1.y = 80;
+        cv::Scalar black_color = CV_RGB(50, 250, 50);
+        char labelstr[4096] = { 0 };
+        std::stringstream tmp;
+        tmp << contador;
+        char const *num_char = tmp.str().c_str();
+        strcat(labelstr, "Tolal de caras detectadas: ");
+        strcat(labelstr, num_char);
+        cv::Size const text_size = cv::getTextSize(labelstr, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, 1, 0);
+        cv::putText(*show_img, labelstr, pt1, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
+
+
+
+
+
+
+
 
         if (ext_output) {
             fflush(stdout);
