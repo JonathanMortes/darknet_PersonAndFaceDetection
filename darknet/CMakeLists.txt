@@ -6,6 +6,7 @@ set(Darknet_MINOR_VERSION 2)
 set(Darknet_PATCH_VERSION 5)
 set(Darknet_TWEAK_VERSION 4)
 set(Darknet_VERSION ${Darknet_MAJOR_VERSION}.${Darknet_MINOR_VERSION}.${Darknet_PATCH_VERSION}.${Darknet_TWEAK_VERSION})
+add_subdirectory(../dlib dlib_build)
 
 option(CMAKE_VERBOSE_MAKEFILE "Create verbose makefile" ON)
 option(CUDA_VERBOSE_BUILD "Create verbose CUDA build" ON)
