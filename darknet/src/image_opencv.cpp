@@ -878,7 +878,7 @@ extern "C" void save_cv_jpg(mat_cv *img_src, const char *name)
 // ====================================================================
 extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, float thresh, char **names, image **alphabet, int classes, int ext_output)
 {
-  printf("entering detection\n", );
+  printf("entering detection\n");
     try {
         cv::Mat *show_img = (cv::Mat*)mat;
         int i, j;
