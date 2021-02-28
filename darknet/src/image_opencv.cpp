@@ -1060,12 +1060,10 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
 
         // Función de detección
         cv::Mat mat1;
-        cv::Mat mat2;
         cv::cvtColor(*show_img, mat1, cv::COLOR_BGR2RGB);
-        cv::cvtColor(mat2, mat1, cv::COLOR_RGB2BGR);
 
 
-        cv::Size s = mat2.size();
+        cv::Size s = mat1.size();
 
         int frameHeight = s.height;
         int frameWidth = s.width;
@@ -1075,7 +1073,7 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         float scaleWidth = frameWidth / (float)inWidth;
 
         cv::Mat small;
-        cv::resize(*show_img,small,cv::Size(inWidth,inHeight));
+        cv::resize(mat1,small,cv::Size(inWidth,inHeight));
 
         // Convert OpenCV image format to Dlib's image format
         dlib::cv_image<dlib::bgr_pixel> dlibIm(small);
