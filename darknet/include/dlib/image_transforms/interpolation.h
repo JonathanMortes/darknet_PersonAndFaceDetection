@@ -229,21 +229,23 @@ namespace dlib
     class interpolate_bilinear
     {
     public:
-
         template <typename T, typename image_view_type, typename pixel_type>
-        typename disable_if<is_rgb_image<image_view_type>,bool>::type operator() (
+        bool operator() (
             const image_view_type& img,
             const dlib::vector<T,2>& p,
             pixel_type& result
         ) const
         {
-            COMPILE_TIME_ASSERT(pixel_traits<typename image_view_type::pixel_type>::has_alpha == false);
+            // Assign pixel gives special meaning to alpha channel that would break interpolation
+            static_assert(pixel_traits<typename image_view_type::pixel_type>::has_alpha == false, "Images with alpha channel not supported");
+            // Interpolation currently supports only fully cartesian (non-polar) spaces.
+            static_assert(is_color_space_cartesian_image<image_view_type>::value == true, "Non-cartesian color space used in interpolation");
+
 
             const long left   = static_cast<long>(std::floor(p.x()));
             const long top    = static_cast<long>(std::floor(p.y()));
             const long right  = left+1;
             const long bottom = top+1;
-
 
             // if the interpolation goes outside img 
             if (!(left >= 0 && top >= 0 && right < img.nc() && bottom < img.nr()))
@@ -252,72 +254,17 @@ namespace dlib
             const double lr_frac = p.x() - left;
             const double tb_frac = p.y() - top;
 
-            double tl = 0, tr = 0, bl = 0, br = 0;
-
-            assign_pixel(tl, img[top][left]);
-            assign_pixel(tr, img[top][right]);
-            assign_pixel(bl, img[bottom][left]);
-            assign_pixel(br, img[bottom][right]);
-            
-            double temp = (1-tb_frac)*((1-lr_frac)*tl + lr_frac*tr) + 
-                              tb_frac*((1-lr_frac)*bl + lr_frac*br);
-                            
+            const auto tl = pixel_to_vector<double>(img[top][left]);
+            const auto tr = pixel_to_vector<double>(img[top][right]);
+            const auto bl = pixel_to_vector<double>(img[bottom][left]);
+            const auto br = pixel_to_vector<double>(img[bottom][right]);
+            typename image_view_type::pixel_type temp;
+            vector_to_pixel(temp, (1 - tb_frac) * ((1 - lr_frac) * tl + lr_frac * tr) +
+                tb_frac * ((1 - lr_frac) * bl + lr_frac * br));
             assign_pixel(result, temp);
             return true;
         }
 
-        template <typename T, typename image_view_type, typename pixel_type>
-        typename enable_if<is_rgb_image<image_view_type>,bool>::type operator() (
-            const image_view_type& img,
-            const dlib::vector<T,2>& p,
-            pixel_type& result
-        ) const
-        {
-            COMPILE_TIME_ASSERT(pixel_traits<typename image_view_type::pixel_type>::has_alpha == false);
-
-            const long left   = static_cast<long>(std::floor(p.x()));
-            const long top    = static_cast<long>(std::floor(p.y()));
-            const long right  = left+1;
-            const long bottom = top+1;
-
-
-            // if the interpolation goes outside img 
-            if (!(left >= 0 && top >= 0 && right < img.nc() && bottom < img.nr()))
-                return false;
-
-            const double lr_frac = p.x() - left;
-            const double tb_frac = p.y() - top;
-
-            double tl, tr, bl, br;
-
-            tl = img[top][left].red;
-            tr = img[top][right].red;
-            bl = img[bottom][left].red;
-            br = img[bottom][right].red;
-            const double red = (1-tb_frac)*((1-lr_frac)*tl + lr_frac*tr) + 
-                                   tb_frac*((1-lr_frac)*bl + lr_frac*br);
-
-            tl = img[top][left].green;
-            tr = img[top][right].green;
-            bl = img[bottom][left].green;
-            br = img[bottom][right].green;
-            const double green = (1-tb_frac)*((1-lr_frac)*tl + lr_frac*tr) + 
-                                   tb_frac*((1-lr_frac)*bl + lr_frac*br);
-
-            tl = img[top][left].blue;
-            tr = img[top][right].blue;
-            bl = img[bottom][left].blue;
-            br = img[bottom][right].blue;
-            const double blue = (1-tb_frac)*((1-lr_frac)*tl + lr_frac*tr) + 
-                                   tb_frac*((1-lr_frac)*bl + lr_frac*br);
-                            
-            rgb_pixel temp;
-            assign_pixel(temp.red, red);
-            assign_pixel(temp.green, green);
-            assign_pixel(temp.blue, blue);
-            assign_pixel(result, temp);
-            return true;
-        }
     };
 
 // ----------------------------------------------------------------------------------------
@@ -328,94 +275,43 @@ namespace dlib
     public:
 
         template <typename T, typename image_view_type, typename pixel_type>
-        typename disable_if<is_rgb_image<image_view_type>,bool>::type operator() (
+        bool operator() (
             const image_view_type& img,
             const dlib::vector<T,2>& p,
             pixel_type& result
         ) const
         {
-            COMPILE_TIME_ASSERT(pixel_traits<typename image_view_type::pixel_type>::has_alpha == false);
+            // Assign pixel gives special meaning to alpha channel that would break interpolation
+            static_assert(pixel_traits<typename image_view_type::pixel_type>::has_alpha == false, "Images with alpha channel not supported");
+            // Interpolation currently supports only fully cartesian (non-polar) spaces.
+            static_assert(is_color_space_cartesian_image<image_view_type>::value == true, "Non-cartesian color space used in interpolation");
+
+            using traits = pixel_traits<typename image_view_type::pixel_type>;
 
             const point pp(p);
 
             // if the interpolation goes outside img 
-            if (!get_rect(img).contains(grow_rect(pp,1))) 
+            if (!get_rect(img).contains(grow_rect(pp,1)))
                 return false;
 
             const long r = pp.y();
             const long c = pp.x();
 
-            const double temp = interpolate(p-pp, 
-                                    img[r-1][c-1],
-                                    img[r-1][c  ],
-                                    img[r-1][c+1],
-                                    img[r  ][c-1],
-                                    img[r  ][c  ],
-                                    img[r  ][c+1],
-                                    img[r+1][c-1],
-                                    img[r+1][c  ],
-                                    img[r+1][c+1]);
-
+            matrix<double, traits::num, 1> pvout;
+            for (long i = 0; i < traits::num; ++i)
+                pvout(i) = interpolate(p-pp,
+                    pixel_to_vector<double>(img[r-1][c-1])(i),
+                    pixel_to_vector<double>(img[r-1][c  ])(i),
+                    pixel_to_vector<double>(img[r-1][c+1])(i),
+                    pixel_to_vector<double>(img[r  ][c-1])(i),
+                    pixel_to_vector<double>(img[r  ][c  ])(i),
+                    pixel_to_vector<double>(img[r  ][c+1])(i),
+                    pixel_to_vector<double>(img[r+1][c-1])(i),
+                    pixel_to_vector<double>(img[r+1][c  ])(i),
+                    pixel_to_vector<double>(img[r+1][c+1])(i));
+            typename image_view_type::pixel_type temp;
+            vector_to_pixel(temp, pvout);
             assign_pixel(result, temp);
-            return true;
-        }
-
-        template <typename T, typename image_view_type, typename pixel_type>
-        typename enable_if<is_rgb_image<image_view_type>,bool>::type operator() (
-            const image_view_type& img,
-            const dlib::vector<T,2>& p,
-            pixel_type& result
-        ) const
-        {
-            COMPILE_TIME_ASSERT(pixel_traits<typename image_view_type::pixel_type>::has_alpha == false);
-
-            const point pp(p);
-
-            // if the interpolation goes outside img 
-            if (!get_rect(img).contains(grow_rect(pp,1))) 
-                return false;
-
-            const long r = pp.y();
-            const long c = pp.x();
-
-            const double red = interpolate(p-pp, 
-                            img[r-1][c-1].red,
-                            img[r-1][c  ].red,
-                            img[r-1][c+1].red,
-                            img[r  ][c-1].red,
-                            img[r  ][c  ].red,
-                            img[r  ][c+1].red,
-                            img[r+1][c-1].red,
-                            img[r+1][c  ].red,
-                            img[r+1][c+1].red);
-            const double green = interpolate(p-pp, 
-                            img[r-1][c-1].green,
-                            img[r-1][c  ].green,
-                            img[r-1][c+1].green,
-                            img[r  ][c-1].green,
-                            img[r  ][c  ].green,
-                            img[r  ][c+1].green,
-                            img[r+1][c-1].green,
-                            img[r+1][c  ].green,
-                            img[r+1][c+1].green);
-            const double blue = interpolate(p-pp, 
-                            img[r-1][c-1].blue,
-                            img[r-1][c  ].blue,
-                            img[r-1][c+1].blue,
-                            img[r  ][c-1].blue,
-                            img[r  ][c  ].blue,
-                            img[r  ][c+1].blue,
-                            img[r+1][c-1].blue,
-                            img[r+1][c  ].blue,
-                            img[r+1][c+1].blue);
-
-
-            rgb_pixel temp;
-            assign_pixel(temp.red, red);
-            assign_pixel(temp.green, green);
-            assign_pixel(temp.blue, blue);
-            assign_pixel(result, temp);
-
             return true;
         }
 
@@ -865,10 +761,18 @@ namespace dlib
                 float fout[4];
                 out.store(fout);
 
-                out_img[r][c]   = static_cast<T>(fout[0]);
-                out_img[r][c+1] = static_cast<T>(fout[1]);
-                out_img[r][c+2] = static_cast<T>(fout[2]);
-                out_img[r][c+3] = static_cast<T>(fout[3]);
+                const auto convert_to_output_type = [](float value)
+                {
+                    if (std::is_integral<T>::value)
+                        return static_cast<T>(value + 0.5);
+                    else
+                        return static_cast<T>(value);
+                };
+
+                out_img[r][c]   = convert_to_output_type(fout[0]);
+                out_img[r][c+1] = convert_to_output_type(fout[1]);
+                out_img[r][c+2] = convert_to_output_type(fout[2]);
+                out_img[r][c+3] = convert_to_output_type(fout[3]);
             }
             x = -x_scale + c*x_scale;
             for (; c < out_img.nc(); ++c)
@@ -1054,7 +958,7 @@ namespace dlib
             << "\n\t Invalid inputs were given to this function."
             << "\n\t size_scale:  " << size_scale
             );
-
+        if (size_scale == 1.0) return; // no need to do anything at all
         image_type temp;
         set_image_size(temp, std::round(size_scale*num_rows(img)), std::round(size_scale*num_columns(img)));
         resize_image(img, temp);
@@ -1880,6 +1784,12 @@ namespace dlib
         }
 #endif 
 
+        // If nearest-neighbor interpolation is wanted, then don't use an image pyramid.
+        constexpr bool image_pyramid_enabled = !std::is_same<
+            typename std::remove_const<typename std::remove_reference<decltype(interp)>::type>::type,
+            interpolate_nearest_neighbor
+        >::value;
+
         pyramid_down<2> pyr;
         long max_depth = 0;
         // If the chip is supposed to be much smaller than the source subwindow then you
@@ -1894,7 +1804,7 @@ namespace dlib
             long depth = 0;
             double grow = 2;
             drectangle rect = pyr.rect_down(chip_locations[i].rect);
-            while (rect.area() > chip_locations[i].size())
+            while (rect.area() > chip_locations[i].size() && image_pyramid_enabled)
             {
                 rect = pyr.rect_down(rect);
                 ++depth;
@@ -1942,7 +1852,7 @@ namespace dlib
                 // figure out which level in the pyramid to use to extract the chip
                 int level = -1;
                 drectangle rect = translate_rect(chip_locations[i].rect, -bounding_box.tl_corner());
-                while (pyr.rect_down(rect).area() > chip_locations[i].size())
+                while (pyr.rect_down(rect).area() > chip_locations[i].size() && image_pyramid_enabled)
                 {
                     ++level;
                     rect = pyr.rect_down(rect);

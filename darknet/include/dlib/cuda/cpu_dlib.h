@@ -8,6 +8,7 @@
 
 #include "tensor.h"
 #include "../geometry/rectangle.h"
+#include "../dnn/misc.h"
 
 namespace dlib
 {
@@ -230,6 +231,30 @@ namespace dlib
 
     // -----------------------------------------------------------------------------------
 
+        void layer_normalize (
+            const double eps,
+            resizable_tensor& dest,
+            resizable_tensor& means,
+            resizable_tensor& invstds,
+            const tensor& src,
+            const tensor& gamma,
+            const tensor& beta
+        );
+
+        void layer_normalize_gradient (
+            const double eps,
+            const tensor& gradient_input,
+            const tensor& means,
+            const tensor& invstds,
+            const tensor& src,
+            const tensor& gamma,
+            tensor& src_grad,
+            tensor& gamma_grad,
+            tensor& beta_grad
+        );
+
+    // -----------------------------------------------------------------------------------
+
         void threshold (
             tensor& data,
             float thresh
@@ -283,6 +308,19 @@ namespace dlib
 
     // ------------------------------------------------------------------------------------
 
+        void mish (
+            tensor& dest,
+            const tensor& src
+        );
+
+        void mish_gradient (
+            tensor& grad,
+            const tensor& src,
+            const tensor& gradient_input
+        );
+
+    // ------------------------------------------------------------------------------------
+
         void relu (
             tensor& dest,
             const tensor& src
@@ -312,12 +350,40 @@ namespace dlib
 
     // ------------------------------------------------------------------------------------
 
+        void leaky_relu (
+            tensor& dest,
+            const tensor& src,
+            const float alpha
+        );
+
+        void leaky_relu_gradient (
+            tensor& grad,
+            const tensor& dest,
+            const tensor& gradient_input,
+            const float alpha
+        );
+
+    // ------------------------------------------------------------------------------------
+
         void tanh (
             tensor& dest,
             const tensor& src
         );
 
         void tanh_gradient (
+            tensor& grad,
+            const tensor& dest,
+            const tensor& gradient_input
+        );
+
+    // ----------------------------------------------------------------------------------------
+
+        void gelu (
+            tensor& dest,
+            const tensor& src
+        );
+
+        void gelu_gradient (
             tensor& grad,
             const tensor& dest,
             const tensor& gradient_input
@@ -490,6 +556,245 @@ namespace dlib
             size_t src_k_offset,
             size_t count_k
         );
+
+    // -----------------------------------------------------------------------------------
+
+    class compute_loss_binary_log_per_pixel
+    {
+
+        /*! The point of this class is to compute the loss for loss_binary_log_per_pixel_
+            on the cpu to provide an analogous implementation of the cuda version
+        !*/
+    public:
+        compute_loss_binary_log_per_pixel(
+        )
+        {
+        }
+
+        template <
+            typename const_label_iterator
+            >
+        void operator()(
+            const_label_iterator truth,
+            const tensor& output_tensor,
+            tensor& grad,
+            double& loss
+        ) const
+        {
+            sigmoid(grad, output_tensor);
+            // The loss we output is the average loss over the mini-batch, and also over each element of the matrix output.
+            const double scale = 1.0/(output_tensor.num_samples()*output_tensor.nr()*output_tensor.nc());
+            loss = 0;
+            float* const g = grad.host();
+            const float* const out_data = output_tensor.host();
+            for (long i = 0; i < output_tensor.num_samples(); ++i, ++truth)
+            {
+                for (long r = 0; r < output_tensor.nr(); ++r)
+                {
+                    for (long c = 0; c < output_tensor.nc(); ++c)
+                    {
+                        const float y = truth->operator()(r, c);
+                        const size_t idx = tensor_index(output_tensor, i, 0, r, c);
+
+                        if (y > 0.f)
+                        {
+                            const float temp = log1pexp(-out_data[idx]);
+                            loss += y*scale*temp;
+                            g[idx] = y*scale*(g[idx]-1);
+                        }
+                        else if (y < 0.f)
+                        {
+                            const float temp = -(-out_data[idx]-log1pexp(-out_data[idx]));
+                            loss += -y*scale*temp;
+                            g[idx] = -y*scale*g[idx];
+                        }
+                        else
+                        {
+                            g[idx] = 0.f;
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    // -----------------------------------------------------------------------------------
+
+    class compute_loss_multiclass_log_per_pixel
+    {
+
+        /*! The point of this class is to compute the loss for loss_multiclass_log_per_pixel_
+            on the cpu to provide an analogous implementation of the cuda version
+        !*/
+    public:
+        compute_loss_multiclass_log_per_pixel(
+        )
+        {
+        }
+
+        template <
+            typename const_label_iterator
+            >
+        void operator()(
+            const_label_iterator truth,
+            const tensor& output_tensor,
+            tensor& grad,
+            double& loss
+        ) const
+        {
+            softmax(grad, output_tensor);
+            // The loss we output is the average loss over the mini-batch, and also over each element of the matrix output.
+            const double scale = 1.0 / (output_tensor.num_samples() * output_tensor.nr() * output_tensor.nc());
+            loss = 0;
+            float* const g = grad.host();
+            for (long i = 0; i < output_tensor.num_samples(); ++i, ++truth)
+            {
+                for (long r = 0; r < output_tensor.nr(); ++r)
+                {
+                    for (long c = 0; c < output_tensor.nc(); ++c)
+                    {
+                        const uint16_t y = truth->operator()(r, c);
+                        // The network must produce a number of outputs that is equal to the number
+                        // of labels when using this type of loss.
+                        DLIB_CASSERT(static_cast<long>(y) < output_tensor.k() || y == label_to_ignore,
+                                        "y: " << y << ", output_tensor.k(): " << output_tensor.k());
+                        for (long k = 0; k < output_tensor.k(); ++k)
+                        {
+                            const size_t idx = tensor_index(output_tensor, i, k, r, c);
+                            if (k == y)
+                            {
+                                loss += scale*-safe_log(g[idx]);
+                                g[idx] = scale*(g[idx] - 1);
+                            }
+                            else if (y == label_to_ignore)
+                            {
+                                g[idx] = 0.f;
+                            }
+                            else
+                            {
+                                g[idx] = scale*g[idx];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    private:
+        static const uint16_t label_to_ignore = std::numeric_limits<uint16_t>::max();
+    };
+
+    // -----------------------------------------------------------------------------------
+
+    class compute_loss_multiclass_log_per_pixel_weighted
+    {
+
+        /*! The point of this class is to compute the loss for loss_multiclass_log_per_pixel_weighted_
+            on the cpu to provide an analogous implementation of the cuda version
+        !*/
+    public:
+        compute_loss_multiclass_log_per_pixel_weighted(
+        )
+        {
+        }
+
+        template <
+            typename const_label_iterator
+            >
+        void operator()(
+            const_label_iterator truth,
+            const tensor& output_tensor,
+            tensor& grad,
+            double& loss
+        ) const
+        {
+            softmax(grad, output_tensor);
+            // The loss we output is the weighted average loss over the mini-batch, and also over each element of the matrix output.
+            const double scale = 1.0 / (output_tensor.num_samples() * output_tensor.nr() * output_tensor.nc());
+            loss = 0;
+            float* const g = grad.host();
+            for (long i = 0; i < output_tensor.num_samples(); ++i, ++truth)
+            {
+                for (long r = 0; r < output_tensor.nr(); ++r)
+                {
+                    for (long c = 0; c < output_tensor.nc(); ++c)
+                    {
+                        const weighted_label<uint16_t>& weighted_label = truth->operator()(r, c);
+                        const uint16_t y = weighted_label.label;
+                        const float weight = weighted_label.weight;
+                        // The network must produce a number of outputs that is equal to the number
+                        // of labels when using this type of loss.
+                        DLIB_CASSERT(static_cast<long>(y) < output_tensor.k() || weight == 0.f,
+                                        "y: " << y << ", output_tensor.k(): " << output_tensor.k());
+                        for (long k = 0; k < output_tensor.k(); ++k)
+                        {
+                            const size_t idx = tensor_index(output_tensor, i, k, r, c);
+                            if (k == y)
+                            {
+                                loss += weight*scale*-safe_log(g[idx]);
+                                g[idx] = weight*scale*(g[idx] - 1);
+                            }
+                            else
+                            {
+                                g[idx] = weight*scale*g[idx];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    };
+
+    // -----------------------------------------------------------------------------------
+
+    class compute_loss_mean_squared_per_channel_and_pixel
+    {
+        /*! The point of this class is to compute the loss for loss_mean_squared_per_channel_and_pixel_
+            on the cpu to provide an analogous implementation of the cuda version
+        !*/
+        public:
+
+            compute_loss_mean_squared_per_channel_and_pixel(
+            )
+            {
+            }
+
+        template <
+            typename const_label_iterator
+            >
+        void operator()(
+            const_label_iterator truth,
+            const tensor& output_tensor,
+            tensor& grad,
+            double& loss
+        ) const
+        {
+            // The loss we output is the average loss over the mini-batch, and also over each element of the matrix output.
+            const double scale = 1.0 / (output_tensor.num_samples() * output_tensor.k() * output_tensor.nr() * output_tensor.nc());
+            loss = 0;
+            float* const g = grad.host();
+            const float* out_data = output_tensor.host();
+            for (long i = 0; i < output_tensor.num_samples(); ++i, ++truth)
+            {
+                for (long k = 0; k < output_tensor.k(); ++k)
+                {
+                    for (long r = 0; r < output_tensor.nr(); ++r)
+                    {
+                        for (long c = 0; c < output_tensor.nc(); ++c)
+                        {
+                            const float y = (*truth)[k].operator()(r, c);
+                            const size_t idx = tensor_index(output_tensor, i, k, r, c);
+                            const float temp1 = y - out_data[idx];
+                            const float temp2 = scale*temp1;
+                            loss += temp2*temp1;
+                            g[idx] = -temp2;
+                        }
+                    }
+                }
+            }
+        }
+
+    };
 
     // -----------------------------------------------------------------------------------
 

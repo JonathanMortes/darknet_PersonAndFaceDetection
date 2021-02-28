@@ -165,7 +165,7 @@ namespace dlib
                   were independent events.  The larger the magnitude of COR the more
                   evidence we have for the correlation.
                 - COR < 0: There is evidence that A and B are anti-correlated.  That is,
-                  when A happens B is unlikely to happen and vise versa.  The larger the
+                  when A happens B is unlikely to happen and vice versa.  The larger the
                   magnitude of COR the more evidence we have for the anti-correlation.
             - This function implements the simple likelihood ratio test discussed in the
               following paper:
@@ -1067,10 +1067,6 @@ namespace dlib
                 This object represents something that can learn to normalize a set 
                 of column vectors.  In particular, normalized column vectors should 
                 have zero mean and a variance of one.  
-
-                Also, if desired, this object can use principal component 
-                analysis for the purposes of reducing the number of elements in a 
-                vector.  
 
             THREAD SAFETY
                 Note that this object contains a cached matrix object it uses 

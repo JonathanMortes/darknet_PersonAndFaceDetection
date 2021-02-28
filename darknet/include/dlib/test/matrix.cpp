@@ -314,6 +314,9 @@ namespace
             serialize(c2,sout);
             serialize(d1,sout);
             serialize(d2,sout);
+            
+            std::vector<int8_t> buf1;
+            dlib::serialize(buf1) << a1 << a2 << b1 << b2 << c1 << c2 << d1 << d2;
 
             DLIB_TEST(a1 == orig1);
             DLIB_TEST(a2 == orig2);
@@ -361,8 +364,27 @@ namespace
             DLIB_TEST(c2 == orig2);
             DLIB_TEST(d1 == orig1);
             DLIB_TEST(d2 == orig2);
-
-
+            
+            set_all_elements(a1,99);
+            set_all_elements(a2,99);
+            set_all_elements(b1,99);
+            set_all_elements(b2,99);
+            set_all_elements(c1,99);
+            set_all_elements(c2,99);
+            set_all_elements(d1,99);
+            set_all_elements(d2,99);
+            
+            std::vector<uint8_t> buf2(buf1.begin(), buf1.end());
+            dlib::deserialize(buf2) >> a1 >> a2 >> b1 >> b2 >> c1 >> c2 >> d1 >> d2;
+            
+            DLIB_TEST(a1 == orig1);
+            DLIB_TEST(a2 == orig2);
+            DLIB_TEST(b1 == orig1);
+            DLIB_TEST(b2 == orig2);
+            DLIB_TEST(c1 == orig1);
+            DLIB_TEST(c2 == orig2);
+            DLIB_TEST(d1 == orig1);
+            DLIB_TEST(d2 == orig2);
         }
 
         {
@@ -1060,6 +1082,8 @@ namespace
             DLIB_TEST(subm(m,range(1,1),range(0,2)) == rowm(m,1));
             DLIB_TEST(subm(m,range(2,2),range(0,2)) == rowm(m,2));
             DLIB_TEST(subm(m,range(3,3),range(0,2)) == rowm(m,3));
+            DLIB_TEST(rowm(m,matrix<long>()).size()==0);
+            DLIB_TEST(colm(m,matrix<long>()).size()==0);
 
             DLIB_TEST(subm(m,0,0,2,2) == subm(m,range(0,1),range(0,1)));
             DLIB_TEST(subm(m,1,1,2,2) == subm(m,range(1,2),range(1,2)));
@@ -1164,6 +1188,10 @@ namespace
             DLIB_TEST((complex_matrix(ones_matrix<double>(3,3), zeros_matrix<double>(3,3)) == complex_matrix(ones_matrix<double>(3,3))));
             DLIB_TEST((pointwise_multiply(complex_matrix(ones_matrix<double>(3,3)), ones_matrix<double>(3,3)*2) ==
                        complex_matrix(2*ones_matrix<double>(3,3))));
+            DLIB_TEST((pointwise_divide(complex_matrix(ones_matrix<double>(3,3)), ones_matrix<double>(3,3)) ==
+                       complex_matrix(ones_matrix<double>(3,3))));
+            DLIB_TEST((pointwise_divide(complex_matrix(zeros_matrix<double>(3,3)), ones_matrix<double>(3,3)) ==
+                       complex_matrix(zeros_matrix<double>(3,3))));
         }
 
         {

@@ -134,6 +134,16 @@ namespace dlib
     struct is_rgb_image { const static bool value = pixel_traits<typename image_traits<image_type>::pixel_type>::rgb; };
 
     template <typename image_type>
+    struct is_color_space_cartesian_image { const static bool value = 
+        pixel_traits<typename image_traits<image_type>::pixel_type>::rgb || 
+        pixel_traits<typename image_traits<image_type>::pixel_type>::lab || 
+        pixel_traits<typename image_traits<image_type>::pixel_type>::grayscale; };
+    /*
+        Tells if all color components of image pixels are in cartesian coordinates, compared to e.g. polar coordinates.
+        Polar coordinates that may require more complicated blending.
+    */
+
+    template <typename image_type>
     struct is_grayscale_image { const static bool value = pixel_traits<typename image_traits<image_type>::pixel_type>::grayscale; };
 
 
@@ -186,7 +196,7 @@ namespace dlib
         image_view(
             image_type& img
         ) : 
-            _data((char*)image_data(img)), 
+            _data(reinterpret_cast<char*>(image_data(img))), 
             _width_step(width_step(img)),
             _nr(num_rows(img)),
             _nc(num_columns(img)),
@@ -332,7 +342,7 @@ namespace dlib
         const_image_view(
             const image_type& img
         ) : 
-            _data((char*)image_data(img)), 
+            _data(reinterpret_cast<const char*>(image_data(img))), 
             _width_step(width_step(img)),
             _nr(num_rows(img)),
             _nc(num_columns(img))
