@@ -20,13 +20,41 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/video/video.hpp>
 
-
+#include <dlib/full_object_detection.h>
 #include <dlib/dnn.h>
 #include <dlib/data_io.h>
 #include <dlib/image_processing.h>
 #include <dlib/gui_widgets.h>
-
+#include <dlib/opencv/cv_image.h>
 #include <dlib/image_processing/frontal_face_detector.h>
+
+
+struct mmod_rect
+{
+    mmod_rect() = default;
+    mmod_rect(const rectangle& r) : rect(r) {}
+    mmod_rect(const rectangle& r, double score) : rect(r),detection_confidence(score) {}
+    mmod_rect(const rectangle& r, double score, const std::string& label) : rect(r),detection_confidence(score), label(label) {}
+
+    rectangle rect;
+    double detection_confidence = 0;
+    bool ignore = false;
+    std::string label;
+
+    operator rectangle() const { return rect; }
+    bool operator == (const mmod_rect& rhs) const
+    {
+        return rect == rhs.rect
+               && detection_confidence == rhs.detection_confidence
+               && ignore == rhs.ignore
+               && label == rhs.label;
+    }
+};
+
+
+
+
+
 
 using namespace std;
 
@@ -1044,10 +1072,10 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         std::stringstream tmp;
         tmp << contador;
         char const *num_char = tmp.str().c_str();
-
         strcat(labelstr, "Tolal de personas detectadas: ");
         strcat(labelstr, num_char);
         cv::putText(*show_img, labelstr, pt1, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
+
 
         // CÓDIGO DE FACE Detection
         std::string mmodModelPath = "/content/darknet_PersonAndFaceDetection/mmod_human_face_detector.dat";
@@ -1055,34 +1083,18 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         dlib::deserialize(mmodModelPath) >> mmodFaceDetector;
 
         cv::Mat cv_image;
-        cv::cvtColor(*show_img, cv_image, cv::COLOR_BGR2RGB);
-        /*
-        //https://learnopencv.com/face-detection-opencv-dlib-and-deep-learning-c-python/
-                // Convert OpenCV image format to Dlib's image format
+        cv::Mat cv_img;
 
-        cv_image<bgr_pixel> dlibIm(frameDlibMmodSmall);
+        cv::cvtColor(*show_img, cv_img, cv::COLOR_BGR2RGB);
+        cv::cvtColor(cv_img, cv_image, cv::COLOR_BGR2RGB);
 
-        matrix<rgb_pixel> dlibMatrix;
+        dlib::array2d<dlib::bgr_pixel> dlibImage;
+        dlib::assign_image(dlibImage, dlib::cv_image<dlib::bgr_pixel>(cv_image));
 
-        assign_image(dlibMatrix, dlibIm);
-        // Detect faces in the image
+        dlib::matrix<dlib::rgb_pixel> dlibMatrix;
+        dlib::assign_image(dlibMatrix, dlibImage);
 
         std::vector<dlib::mmod_rect> faceRects = mmodFaceDetector(dlibMatrix);
-        for ( size_t i = 0; i < faceRects.size(); i++ )
-        {
-          int x1 = faceRects[i].rect.left();
-          int y1 = faceRects[i].rect.top();
-          int x2 = faceRects[i].rect.right();
-          int y2 = faceRects[i].rect.bottom();
-
-        cv::rectangle(frameDlibMmod, Point(x1, y1), Point(x2, y2), Scalar(0,255,0), (int)(frameHeight/150.0), 4);
-        */
-        // IT FAILS HERE
-        //std::vector<dlib::mmod_rect> faceRects = mmodFaceDetector(cv_image);
-        // ------
-        dlib::frontal_face_detector detector = dlib::get_frontal_face_detector();
-        std::vector<rectangle> dets = detector(cv_image);
-
 
 
 
