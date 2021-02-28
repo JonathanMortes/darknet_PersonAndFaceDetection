@@ -1035,7 +1035,7 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
 
 
         // CÓDIGO DE FACE Detection
-        String mmodModelPath = "./content/mmod_human_face_detector.dat";
+        std::string mmodModelPath = "./content/mmod_human_face_detector.dat";
         net_type mmodFaceDetector;
         deserialize(mmodModelPath) >> mmodFaceDetector;
         cv::Mat cv_image;
