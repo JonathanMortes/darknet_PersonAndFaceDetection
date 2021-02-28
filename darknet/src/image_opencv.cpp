@@ -21,7 +21,10 @@
 #include <opencv2/video/video.hpp>
 
 
-
+#include <dlib/dnn.h>
+#include <dlib/data_io.h>
+#include <dlib/image_processing.h>
+#include <dlib/gui_widgets.h>
 // includes for OpenCV >= 3.x
 #ifndef CV_VERSION_EPOCH
 #include <opencv2/core/types.hpp>
