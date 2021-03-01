@@ -23,6 +23,8 @@ output_video = cv2.VideoWriter(output_video_filepath, cv2.VideoWriter_fourcc('M'
                                20,
                                (frame_width, frame_height))
 frame_count = 0
+print("Starting facial detection....")
+print("-----------------------------")
 while (input_video.isOpened()):
     ret, frame = input_video.read()
     if (ret):
