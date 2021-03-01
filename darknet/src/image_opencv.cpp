@@ -92,10 +92,6 @@ extern "C" {
 // ====================================================================
     image mat_to_image(cv::Mat mat);
     cv::Mat image_to_mat(image img);
-//    image ipl_to_image(mat_cv* src);
-//    mat_cv *image_to_ipl(image img);
-//    cv::Mat ipl_to_mat(IplImage *ipl);
-//    IplImage *mat_to_ipl(cv::Mat mat);
 
 
 extern "C" mat_cv *load_image_mat_cv(const char *filename, int flag)
@@ -142,7 +138,6 @@ cv::Mat load_image_mat(char *filename, int channels)
     else {
         fprintf(stderr, "OpenCV can't force load with %d channels\n", channels);
     }
-    //flag |= IMREAD_IGNORE_ORIENTATION;    // un-comment it if you want
 
     cv::Mat *mat_ptr = (cv::Mat *)load_image_mat_cv(filename, flag);
 
@@ -220,91 +215,6 @@ extern "C" void release_mat(mat_cv **mat)
     }
 }
 
-// ====================================================================
-// IplImage
-// ====================================================================
-/*
-extern "C" int get_width_cv(mat_cv *ipl_src)
-{
-    IplImage *ipl = (IplImage *)ipl_src;
-    return ipl->width;
-}
-// ----------------------------------------
-
-extern "C" int get_height_cv(mat_cv *ipl_src)
-{
-    IplImage *ipl = (IplImage *)ipl_src;
-    return ipl->height;
-}
-// ----------------------------------------
-
-extern "C" void release_ipl(mat_cv **ipl)
-{
-    IplImage **ipl_img = (IplImage **)ipl;
-    if (*ipl_img) cvReleaseImage(ipl_img);
-    *ipl_img = NULL;
-}
-// ----------------------------------------
-
-// ====================================================================
-// image-to-ipl, ipl-to-image, image_to_mat, mat_to_image
-// ====================================================================
-
-extern "C" mat_cv *image_to_ipl(image im)
-{
-    int x, y, c;
-    IplImage *disp = cvCreateImage(cvSize(im.w, im.h), IPL_DEPTH_8U, im.c);
-    int step = disp->widthStep;
-    for (y = 0; y < im.h; ++y) {
-        for (x = 0; x < im.w; ++x) {
-            for (c = 0; c < im.c; ++c) {
-                float val = im.data[c*im.h*im.w + y*im.w + x];
-                disp->imageData[y*step + x*im.c + c] = (unsigned char)(val * 255);
-            }
-        }
-    }
-    return (mat_cv *)disp;
-}
-// ----------------------------------------
-
-extern "C" image ipl_to_image(mat_cv* src_ptr)
-{
-    IplImage* src = (IplImage*)src_ptr;
-    int h = src->height;
-    int w = src->width;
-    int c = src->nChannels;
-    image im = make_image(w, h, c);
-    unsigned char *data = (unsigned char *)src->imageData;
-    int step = src->widthStep;
-    int i, j, k;
-
-    for (i = 0; i < h; ++i) {
-        for (k = 0; k < c; ++k) {
-            for (j = 0; j < w; ++j) {
-                im.data[k*w*h + i*w + j] = data[i*step + j*c + k] / 255.;
-            }
-        }
-    }
-    return im;
-}
-// ----------------------------------------
-
-cv::Mat ipl_to_mat(IplImage *ipl)
-{
-    Mat m = cvarrToMat(ipl, true);
-    return m;
-}
-// ----------------------------------------
-
-IplImage *mat_to_ipl(cv::Mat mat)
-{
-    IplImage *ipl = new IplImage;
-    *ipl = mat;
-    return ipl;
-}
-// ----------------------------------------
-*/
-
 extern "C" cv::Mat image_to_mat(image img)
 {
     int channels = img.c;
@@ -336,9 +246,6 @@ extern "C" image mat_to_image(cv::Mat mat)
     for (int y = 0; y < h; ++y) {
         for (int k = 0; k < c; ++k) {
             for (int x = 0; x < w; ++x) {
-                //uint8_t val = mat.ptr<uint8_t>(y)[c * x + k];
-                //uint8_t val = mat.at<Vec3b>(y, x).val[k];
-                //im.data[k*w*h + y*w + x] = val / 255.0f;
 
                 im.data[k*w*h + y*w + x] = data[y*step + x*c + k] / 255.0f;
             }
@@ -462,17 +369,6 @@ extern "C" void show_image_cv(image p, const char *name)
 }
 // ----------------------------------------
 
-/*
-extern "C" void show_image_cv_ipl(mat_cv *disp, const char *name)
-{
-    if (disp == NULL) return;
-    char buff[256];
-    sprintf(buff, "%s", name);
-    cv::namedWindow(buff, WINDOW_NORMAL);
-    cvShowImage(buff, disp);
-}
-// ----------------------------------------
-*/
 
 extern "C" void show_image_mat(mat_cv *mat_ptr, const char *name)
 {
@@ -539,39 +435,6 @@ extern "C" void release_video_writer(write_cv **output_video_writer)
     }
 }
 
-/*
-extern "C" void *open_video_stream(const char *f, int c, int w, int h, int fps)
-{
-    VideoCapture *cap;
-    if(f) cap = new VideoCapture(f);
-    else cap = new VideoCapture(c);
-    if(!cap->isOpened()) return 0;
-    if(w) cap->set(CV_CAP_PROP_FRAME_WIDTH, w);
-    if(h) cap->set(CV_CAP_PROP_FRAME_HEIGHT, w);
-    if(fps) cap->set(CV_CAP_PROP_FPS, w);
-    return (void *) cap;
-}
-
-
-extern "C" image get_image_from_stream(void *p)
-{
-    VideoCapture *cap = (VideoCapture *)p;
-    Mat m;
-    *cap >> m;
-    if(m.empty()) return make_empty_image(0,0,0);
-    return mat_to_image(m);
-}
-
-extern "C" int show_image_cv(image im, const char* name, int ms)
-{
-    Mat m = image_to_mat(im);
-    imshow(name, m);
-    int c = waitKey(ms);
-    if (c != -1) c = c%256;
-    return c;
-}
-*/
-
 
 // ====================================================================
 // Video Capture
@@ -594,8 +457,7 @@ extern "C" cap_cv* get_capture_webcam(int index)
     cv::VideoCapture* cap = NULL;
     try {
         cap = new cv::VideoCapture(index);
-        //cap->set(CV_CAP_PROP_FRAME_WIDTH, 1280);
-        //cap->set(CV_CAP_PROP_FRAME_HEIGHT, 960);
+
     }
     catch (...) {
         cerr << " OpenCV exception: Web-camera " << index << " can't be opened! \n";
@@ -794,8 +656,7 @@ extern "C" image get_image_from_stream_resize(cap_cv *cap, int w, int h, int c, 
     if (c>1) cv::cvtColor(new_img, new_img, cv::COLOR_RGB2BGR);
     image im = mat_to_image(new_img);
 
-    //show_image_cv(im, "im");
-    //show_image_mat(*in_img, "in_img");
+
     return im;
 }
 // ----------------------------------------
@@ -917,19 +778,11 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
             if (class_id >= 0) {
                 int width = std::max(1.0f, show_img->rows * .002f);
 
-                //if(0){
-                //width = pow(prob, 1./2.)*10+1;
-                //alphabet = 0;
-                //}
-
-                //printf("%d %s: %.0f%%\n", i, names[class_id], prob*100);
                 int offset = class_id * 123457 % classes;
                 float red = get_color(2, offset, classes);
                 float green = get_color(1, offset, classes);
                 float blue = get_color(0, offset, classes);
                 float rgb[3];
-
-                //width = prob*20+2;
 
                 rgb[0] = red;
                 rgb[1] = green;
@@ -943,7 +796,6 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
                 b.h = (b.h < 1) ? b.h : 1;
                 b.x = (b.x < 1) ? b.x : 1;
                 b.y = (b.y < 1) ? b.y : 1;
-                //printf("%f %f %f %f\n", b.x, b.y, b.w, b.h);
 
                 int left = (b.x - b.w / 2.)*show_img->cols;
                 int right = (b.x + b.w / 2.)*show_img->cols;
@@ -954,12 +806,6 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
                 if (right > show_img->cols - 1) right = show_img->cols - 1;
                 if (top < 0) top = 0;
                 if (bot > show_img->rows - 1) bot = show_img->rows - 1;
-
-                //int b_x_center = (left + right) / 2;
-                //int b_y_center = (top + bot) / 2;
-                //int b_width = right - left;
-                //int b_height = bot - top;
-                //sprintf(labelstr, "%d x %d - w: %d, h: %d", b_x_center, b_y_center, b_width, b_height);
 
                 float const font_size = show_img->rows / 1000.F;
                 cv::Size const text_size = cv::getTextSize(labelstr, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, 1, 0);
@@ -980,23 +826,6 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
                 color.val[1] = green * 256;
                 color.val[2] = blue * 256;
 
-                // you should create directory: result_img
-                //static int copied_frame_id = -1;
-                //static IplImage* copy_img = NULL;
-                //if (copied_frame_id != frame_id) {
-                //    copied_frame_id = frame_id;
-                //    if(copy_img == NULL) copy_img = cvCreateImage(cvSize(show_img->width, show_img->height), show_img->depth, show_img->nChannels);
-                //    cvCopy(show_img, copy_img, 0);
-                //}
-                //static int img_id = 0;
-                //img_id++;
-                //char image_name[1024];
-                //sprintf(image_name, "result_img/img_%d_%d_%d_%s.jpg", frame_id, img_id, class_id, names[class_id]);
-                //CvRect rect = cvRect(pt1.x, pt1.y, pt2.x - pt1.x, pt2.y - pt1.y);
-                //cvSetImageROI(copy_img, rect);
-                //cvSaveImage(image_name, copy_img, 0);
-                //cvResetImageROI(copy_img);
-
                 cv::rectangle(*show_img, pt1, pt2, color, width, 8, 0);
                 if (ext_output)
                     printf("\t(left_x: %4.0f   top_y: %4.0f   width: %4.0f   height: %4.0f)\n",
@@ -1008,16 +837,14 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
                 cv::rectangle(*show_img, pt_text_bg1, pt_text_bg2, color, CV_FILLED, 8, 0);    // filled
                 cv::Scalar black_color = CV_RGB(0, 0, 0);
                 cv::putText(*show_img, labelstr, pt_text, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
-                // cv::FONT_HERSHEY_COMPLEX_SMALL, cv::FONT_HERSHEY_SIMPLEX
             }
 
         }
-        printf("Tolal detecciones: %d \n",contador);
-        cv::Point pt1;
+        cv::Point textPosition;
         float const font_size = show_img->rows / 1000.F;
-        pt1.x = 40;
-        pt1.y = 40;
-        cv::Scalar black_color = CV_RGB(250, 50, 50);
+        textPosition.x = 40;
+        textPosition.y = 40;
+        cv::Scalar txtColor = CV_RGB(250, 50, 50);
         char labelstr[4096] = { 0 };
         std::stringstream tmp;
         tmp << contador;
@@ -1025,8 +852,9 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
 
         strcat(labelstr, "Tolal de personas detectadas: ");
         strcat(labelstr, num_char);
+        std::cout << labelstr << '\n';
         cv::Size const text_size = cv::getTextSize(labelstr, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, 1, 0);
-        cv::putText(*show_img, labelstr, pt1, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, black_color, 2 * font_size, CV_AA);
+        cv::putText(*show_img, labelstr, textPosition, cv::FONT_HERSHEY_COMPLEX_SMALL, font_size, txtColor, 2 * font_size, CV_AA);
 
         if (ext_output) {
             fflush(stdout);
@@ -1199,7 +1027,6 @@ extern "C" void draw_train_loss(char *windows_name, mat_cv* img_src, int img_siz
 }
 // ----------------------------------------
 
-
 // ====================================================================
 // Data augmentation
 // ====================================================================
@@ -1258,7 +1085,6 @@ extern "C" image image_data_augmentation(mat_cv* mat, int w, int h,
                 hsv[0] += 179 * dhue;
 
                 cv::merge(hsv, hsv_src);
-
                 cvtColor(hsv_src, sized, cv::COLOR_HSV2RGB);    // HSV to RGB (the same as previous)
             }
             else
@@ -1267,29 +1093,15 @@ extern "C" image image_data_augmentation(mat_cv* mat, int w, int h,
             }
         }
 
-        //std::stringstream window_name;
-        //window_name << "augmentation - " << ipl;
-        //cv::imshow(window_name.str(), sized);
-        //cv::waitKey(0);
-
         if (blur) {
             cv::Mat dst(sized.size(), sized.type());
             if (blur == 1) {
                 cv::GaussianBlur(sized, dst, cv::Size(17, 17), 0);
-                //cv::bilateralFilter(sized, dst, 17, 75, 75);
             }
             else {
                 int ksize = (blur / 2) * 2 + 1;
                 cv::Size kernel_size = cv::Size(ksize, ksize);
                 cv::GaussianBlur(sized, dst, kernel_size, 0);
-                //cv::medianBlur(sized, dst, ksize);
-                //cv::bilateralFilter(sized, dst, ksize, 75, 75);
-
-                // sharpen
-                //cv::Mat img_tmp;
-                //cv::GaussianBlur(dst, img_tmp, cv::Size(), 3);
-                //cv::addWeighted(dst, 1.5, img_tmp, -0.5, 0, img_tmp);
-                //dst = img_tmp;
             }
             //std::cout << " blur num_boxes = " << num_boxes << std::endl;
 
@@ -1318,16 +1130,8 @@ extern "C" image image_data_augmentation(mat_cv* mat, int w, int h,
             gaussian_noise = std::max(gaussian_noise, 0);
             cv::randn(noise, 0, gaussian_noise);  //mean and variance
             cv::Mat sized_norm = sized + noise;
-            //cv::normalize(sized_norm, sized_norm, 0.0, 255.0, cv::NORM_MINMAX, sized.type());
-            //cv::imshow("source", sized);
-            //cv::imshow("gaussian noise", sized_norm);
-            //cv::waitKey(0);
             sized = sized_norm;
         }
-
-        //char txt[100];
-        //sprintf(txt, "blur = %d", blur);
-        //cv::putText(sized, txt, cv::Point(100, 100), cv::FONT_HERSHEY_COMPLEX_SMALL, 1.7, CV_RGB(255, 0, 0), 1, CV_AA);
 
         // Mat -> image
         out = mat_to_image(sized);
@@ -1377,10 +1181,6 @@ void callback_mouse_click(int event, int x, int y, int flags, void* user_data)
         x_start = x;
         y_start = y;
 
-        //if (prev_img_rect.contains(Point2i(x, y))) add_id_img = -1;
-        //else if (next_img_rect.contains(Point2i(x, y))) add_id_img = 1;
-        //else add_id_img = 0;
-        //std::cout << "cv::EVENT_LBUTTONDOWN \n";
     }
     else if (event == cv::EVENT_LBUTTONUP)
     {
@@ -1554,8 +1354,6 @@ void show_opencv_info()
     std::cerr << " OpenCV version: " << CV_VERSION_MAJOR << "." << CV_VERSION_MINOR << "." << CVAUX_STR(CV_VERSION_REVISION) OCV_D
         << std::endl;
 }
-
-
 
 }   // extern "C"
 #else  // OPENCV

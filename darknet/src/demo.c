@@ -236,7 +236,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, float hier_thresh, int 
         int src_fps = 25;
         src_fps = get_stream_fps_cpp_cv(cap);
         output_video_writer =
-            create_video_writer(out_filename, 'D', 'I', 'V', 'X', src_fps, get_width_mat(det_img), get_height_mat(det_img), 1);
+            create_video_writer(out_filename, ' D', 'I', 'V', 'X', src_fps, get_width_mat(det_img), get_height_mat(det_img), 1);
 
         //'H', '2', '6', '4'
         //'D', 'I', 'V', 'X'
@@ -265,18 +265,12 @@ void demo(char *cfgfile, char *weightfile, float thresh, float hier_thresh, int 
 
             if (!benchmark) custom_atomic_store_int(&run_fetch_in_thread, 1); // if (custom_create_thread(&fetch_thread, 0, fetch_in_thread, 0)) error("Thread creation failed");
             custom_atomic_store_int(&run_detect_in_thread, 1); // if (custom_create_thread(&detect_thread, 0, detect_in_thread, 0)) error("Thread creation failed");
-
-            //if (nms) do_nms_obj(local_dets, local_nboxes, l.classes, nms);    // bad results
             if (nms) {
                 if (l.nms_kind == DEFAULT_NMS) do_nms_sort(local_dets, local_nboxes, l.classes, nms);
                 else diounms_sort(local_dets, local_nboxes, l.classes, nms, l.nms_kind, l.beta_nms);
             }
 
             if (l.embedding_size) set_track_id(local_dets, local_nboxes, demo_thresh, l.sim_thresh, l.track_ciou_norm, l.track_history_size, l.dets_for_track, l.dets_for_show);
-
-            //printf("\033[2J");
-            //printf("\033[1;1H");
-            //printf("\nFPS:%.1f\n", fps);
             printf("Objects:\n\n");
 
             ++frame_id;
@@ -284,8 +278,6 @@ void demo(char *cfgfile, char *weightfile, float thresh, float hier_thresh, int 
                 int timeout = 400000;
                 send_json(local_dets, local_nboxes, l.classes, demo_names, frame_id, demo_json_port, timeout);
             }
-
-            //char *http_post_server = "webhook.site/898bbd9b-0ddd-49cf-b81d-1f56be98d870";
             if (http_post_host && !send_http_post_once) {
                 int timeout = 3;            // 3 seconds
                 int http_post_port = 80;    // 443 https, 80 http
@@ -367,8 +359,6 @@ void demo(char *cfgfile, char *weightfile, float thresh, float hier_thresh, int 
         if(delay < 0){
             delay = frame_skip;
 
-            //double after = get_wall_time();
-            //float curr = 1./(after - before);
             double after = get_time_point();    // more accurate time measurements
             float curr = 1000000. / (after - before);
             fps = fps*0.9 + curr*0.1;
@@ -378,7 +368,6 @@ void demo(char *cfgfile, char *weightfile, float thresh, float hier_thresh, int 
             frame_counter++;
             global_frame_counter++;
             if (spent_time >= 3.0f) {
-                //printf(" spent_time = %f \n", spent_time);
                 avg_fps = frame_counter / spent_time;
                 frame_counter = 0;
                 start_time = get_time_point();
