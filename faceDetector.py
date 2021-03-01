@@ -15,18 +15,22 @@ import dlib
 # apply face detection (cnn)
 cnn_face_detector = dlib.cnn_face_detection_model_v1("/content/darknet_PersonAndFaceDetection/mmod_human_face_detector.dat")
 
-input_video = cv2.VideoCapture("/content/darknet_PersonAndFaceDetection/people.avi")
-output_video_filepath = "/content/darknet_PersonAndFaceDetection/detections.avi"
+input_video = cv2.VideoCapture("/content/darknet_PersonAndFaceDetection/video.mp4") # Video for frame reading
+video_with_detections = cv2.VideoCapture("/content/darknet_PersonAndFaceDetection/people.avi") # Video we write on top
+output_video_filepath = "/content/darknet_PersonAndFaceDetection/detections.avi"    # Video with results
 frame_width = int(input_video.get(3))
 frame_height = int(input_video.get(4))
 output_video = cv2.VideoWriter(output_video_filepath, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
                                20,
                                (frame_width, frame_height))
 frame_count = 0
-print("Starting facial detection....")
-print("-----------------------------")
+print("---------------------------------")
+print("  Starting facial detection....")
+print("---------------------------------")
 while (input_video.isOpened()):
     ret, frame = input_video.read()
+    ret2, output_frame = video_with_detections.read()
+
     if (ret):
         print("Processing frame: ",frame_count)
         input_image = frame.copy()
@@ -42,14 +46,15 @@ while (input_video.isOpened()):
             w = face.rect.right() - x
             h = face.rect.bottom() - y
             # draw box over face
-            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,255), 2)
+            cv2.rectangle(output_frame, (x,y), (x+w,y+h), (0,0,255), 2)
             counting_faces = counting_faces +1
         caption = "{} {}".format("Total faces in frame: ", str(counting_faces))
         print(caption)
-        cv2.putText(frame, caption, (40,80), cv2.FONT_HERSHEY_PLAIN, 2, (100, 255, 100), 2)
-        output_video.write(frame)
+        cv2.putText(output_frame, caption, (40,80), cv2.FONT_HERSHEY_PLAIN, 2, (100, 255, 100), 2)
+        output_video.write(output_frame)
     else:
         print("Detection terminated. Saving as detections.avi'")
         break
+
 input_video.release()
 output_video.release()
