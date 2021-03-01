@@ -236,7 +236,7 @@ void demo(char *cfgfile, char *weightfile, float thresh, float hier_thresh, int 
         int src_fps = 25;
         src_fps = get_stream_fps_cpp_cv(cap);
         output_video_writer =
-            create_video_writer(out_filename, ' H', '2', '6', '4', src_fps, get_width_mat(det_img), get_height_mat(det_img), 1);
+            create_video_writer(out_filename, ' D', 'I', 'V', 'X', src_fps, get_width_mat(det_img), get_height_mat(det_img), 1);
 
         //'H', '2', '6', '4'
         //'D', 'I', 'V', 'X'
