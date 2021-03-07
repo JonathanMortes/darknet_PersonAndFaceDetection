@@ -1076,9 +1076,8 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
         cv::resize(mat1,small,cv::Size(inWidth,inHeight));
 
         // Convert OpenCV image format to Dlib's image format
-        dlib::cv_image<dlib::bgr_pixel> dlibIm(small);
         dlib::matrix<dlib::rgb_pixel> dlibMatrix;
-        dlib::assign_image(dlibMatrix, dlibIm);
+        dlib::assign_image(dlibMatrix, mat1);
 
         std::vector<dlib::mmod_rect> faceRects = mmodFaceDetector(dlibMatrix);
 
@@ -1090,11 +1089,6 @@ extern "C" void draw_detections_cv_v3(mat_cv* mat, detection *dets, int num, flo
             int y2 = (int)(faceRects[i].rect.bottom() * scaleHeight);
             cv::rectangle(*show_img, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0,255,0), (int)(frameHeight/150.0), 4);
         }
-
-
-
-
-
 
 
         // Imprimimos Face detection
